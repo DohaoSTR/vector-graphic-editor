@@ -1,0 +1,147 @@
+﻿<Window x:Class="VectorGraphicEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        
+        xmlns:localall="clr-namespace:VectorGraphicEditor"
+        xmlns:ctl="clr-namespace:VectorGraphicEditor.Controls"
+        
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:sps="clr-namespace:VectorGraphicEditor.Figures" 
+        xmlns:local="clr-namespace:VectorGraphicEditor.Converters"
+        
+        mc:Ignorable="d"
+        Title="MainWindow" Height="1080" Width="1920"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized">
+    
+    <Window.Resources>
+        <local:ToolStateToIntConverter x:Key="ToolStateToIntConverter"/>
+        <local:VisibilityBoolConverter x:Key="VisibilityBoolConverter"/>
+        <localall:PictureConverter x:Key="PictureConverter"/>
+        
+        <ObjectDataProvider x:Key="ToolStateEnum" 
+                            MethodName="GetValues" 
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="sps:DrawingMode"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <Style TargetType="{x:Type GridSplitter}">
+            <Setter Property="Background" Value="Yellow"/>
+            <Setter Property="ShowsPreview" Value="True"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Width" Value="2"/>
+        </Style>
+
+        <DrawingBrush x:Key="MyCheckeredBrushResource"
+          Viewport="0,0,15,15" ViewportUnits="Absolute" TileMode="Tile">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Geometry="M0,0 1,0 1,1 0,1z"
+                		Brush="White"/>
+                    <GeometryDrawing Geometry="M0,0 L0.5,0 0.5,1 1,1 1,0.5 0,0.5z"
+                		Brush="LightGray"/>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+    </Window.Resources>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="New" 
+                        Executed="NewCommand_Executed"/>
+        <CommandBinding Command="Open" 
+                        Executed="OpenCommand_Executed"/>
+        <CommandBinding Command="Save" 
+                        Executed="SaveCommand_Executed"  
+                        CanExecute="CanSaveCommandExecuted"/>
+        <CommandBinding Command="SaveAs" 
+                        Executed="SaveAsCommand_Executed" 
+                        CanExecute="CanSaveAsCommandExecuted"/>
+    </Window.CommandBindings>
+    
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Файл">
+                <MenuItem Command="New" 
+                          Header="Создать"/>
+                <MenuItem Command="Open"
+                          Header="Открыть"/>
+                <MenuItem Command="Save"
+                          Header="Сохранить"/>
+                <MenuItem Command="SaveAs"
+                          Header="Сохранить как"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="12.418"/>
+                <ColumnDefinition Width="143.582"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <GridSplitter Grid.Column="2"/>
+            <GridSplitter Grid.Column="4"/>
+
+            <DockPanel Grid.Column="0" 
+                       Grid.ColumnSpan="2"
+                       >
+                <WrapPanel DockPanel.Dock="Top">
+                    <Button Click="AddLayer_Click">Новый слой</Button>
+                    <Button Click="DeleteLayer_Click">Удалить слой</Button>
+                </WrapPanel>
+
+                <ListBox Name="layerList" 
+                         SelectedIndex="0" 
+                         ItemsSource="{Binding SelectedItem.Content.Pictures, ElementName=tabBoard}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <Rectangle Width="20" 
+                                           Height="20" 
+                                           Fill="{Binding Converter={StaticResource PictureConverter}, Path=.}"/>
+                                <TextBox Width="100" 
+                                         Text="{Binding Path=Tag}"/>
+                                <ctl:ImageToggleButton Width="32" 
+                                                       Height="32" 
+                                                       IsChecked="{Binding Visibility,  Converter={StaticResource VisibilityBoolConverter}}">
+                                </ctl:ImageToggleButton>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <DockPanel Grid.Column="3">
+                <ctl:ColorPicker x:Name="colorPicker" DockPanel.Dock="Top"/>
+
+                <Grid Margin="10" DockPanel.Dock="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="0.5*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="0.5*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Размер кисти"
+                               Margin="0 0 10 0"/>
+                    <Slider Name="penSize" Minimum="1" Maximum="100" Value="0" Grid.Column="1"
+                                IsSnapToTickEnabled="True" TickFrequency="1"/>
+                    <TextBox Text="{Binding ElementName=penSize, Path=Value}" Grid.Column="2" Grid.Row="0"/>
+                </Grid>
+
+                <ListBox Name="toolList" 
+                         SelectedIndex="0"
+                         ItemsSource="{Binding Source={StaticResource ToolStateEnum}}">
+                </ListBox>
+            </DockPanel>
+
+            <TabControl Grid.Column="5" Name="tabBoard" Background="Gray" SelectedIndex="0">
+            </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>
